@@ -178,6 +178,9 @@ class RecursiveLanguageModel:
                     max_tokens=4096,
                 )
                 raw_text = response.choices[0].message.content or ""
+                # Reasoning models put answer in reasoning field
+                if not raw_text:
+                    raw_text = getattr(response.choices[0].message, "reasoning", "") or ""
                 if response.usage:
                     usage = response.usage
                 else:
@@ -254,6 +257,8 @@ class RecursiveLanguageModel:
                 max_tokens=2048,
             )
             text = response.choices[0].message.content or ""
+            if not text:
+                text = getattr(response.choices[0].message, "reasoning", "") or ""
 
             parse_result = parse_llm_response(text)
             if parse_result.final_answer:
