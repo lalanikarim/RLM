@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "created": "2025-04-29",
+  "description": "Synthetic test dataset for RLM benchmark. Each case has a query, ground truth, and context suitable for testing long-context reasoning.",
+  "metadata": {
+    "num_cases": 8,
+    "case_types": [
+      "counting",
+      "summing",
+      "filtering",
+      "aggregation",
+      "multi-hop"
+    ],
+    "difficulty_distribution": {
+      "easy": 4,
+      "medium": 4
+    }
+  },
+  "cases": [
+    {
+      "id": "T1",
+      "name": "Count user 10001 entity entries",
+      "query": "How many entries are associated with user ID 10001 and labeled 'entity'?",
+      "ground_truth": "10",
+      "context_type": "tabular",
+      "context_size": 50,
+      "difficulty": "medium",
+      "context": "Date: 2024-01-01 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-02-02 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-03-03 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-04-04 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-05-05 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-06-06 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-07-07 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-08-08 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-09-09 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-10-10 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-11-11 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-12-12 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-01-13 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-02-14 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-03-15 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-04-16 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-05-17 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-06-18 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-07-19 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-08-20 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-09-21 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-10-22 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-11-23 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-12-24 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-01-25 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-02-26 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-03-27 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-04-28 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-05-01 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-06-02 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-07-03 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-08-04 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-09-05 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-10-06 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-11-07 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-12-08 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-01-09 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-02-10 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-03-11 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-04-12 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-05-13 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-06-14 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-07-15 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-08-16 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-09-17 || User: 10005 || Query: What is the capital of ce Ja? || Label: org\nDate: 2024-10-18 || User: 10001 || Query: What is the capital of Franc? || Label: entity\nDate: 2024-11-19 || User: 10002 || Query: What is the capital of rance? || Label: person\nDate: 2024-12-20 || User: 10003 || Query: What is the capital of ance ? || Label: location\nDate: 2024-01-21 || User: 10004 || Query: What is the capital of nce J? || Label: other\nDate: 2024-02-22 || User: 10005 || Query: What is the capital of ce Ja? || Label: org"
+    },
+    {
+      "id": "T2",
+      "name": "Sum all values",
+      "query": "What is the sum of all values across all items?",
+      "ground_truth": "34749",
+      "context_type": "tabular",
+      "context_size": 100,
+      "difficulty": "easy",
+      "context": "Item0: category=A, value=0\nItem1: category=B, value=8\nItem2: category=C, value=16\nItem3: category=D, value=21\nItem4: category=E, value=29\nItem5: category=F, value=37\nItem6: category=A, value=42\nItem7: category=B, value=50\nItem8: category=C, value=58\nItem9: category=D, value=63\nItem10: category=E, value=71\nItem11: category=F, value=79\nItem12: category=A, value=84\nItem13: category=B, value=92\nItem14: category=C, value=100\nItem15: category=D, value=105\nItem16: category=E, value=113\nItem17: category=F, value=121\nItem18: category=A, value=126\nItem19: category=B, value=134\nItem20: category=C, value=142\nItem21: category=D, value=147\nItem22: category=E, value=155\nItem23: category=F, value=163\nItem24: category=A, value=168\nItem25: category=B, value=176\nItem26: category=C, value=184\nItem27: category=D, value=189\nItem28: category=E, value=197\nItem29: category=F, value=205\nItem30: category=A, value=210\nItem31: category=B, value=218\nItem32: category=C, value=226\nItem33: category=D, value=231\nItem34: category=E, value=239\nItem35: category=F, value=247\nItem36: category=A, value=252\nItem37: category=B, value=260\nItem38: category=C, value=268\nItem39: category=D, value=273\nItem40: category=E, value=281\nItem41: category=F, value=289\nItem42: category=A, value=294\nItem43: category=B, value=302\nItem44: category=C, value=310\nItem45: category=D, value=315\nItem46: category=E, value=323\nItem47: category=F, value=331\nItem48: category=A, value=336\nItem49: category=B, value=344\nItem50: category=C, value=352\nItem51: category=D, value=357\nItem52: category=E, value=365\nItem53: category=F, value=373\nItem54: category=A, value=378\nItem55: category=B, value=386\nItem56: category=C, value=394\nItem57: category=D, value=399\nItem58: category=E, value=407\nItem59: category=F, value=415\nItem60: category=A, value=420\nItem61: category=B, value=428\nItem62: category=C, value=436\nItem63: category=D, value=441\nItem64: category=E, value=449\nItem65: category=F, value=457\nItem66: category=A, value=462\nItem67: category=B, value=470\nItem68: category=C, value=478\nItem69: category=D, value=483\nItem70: category=E, value=491\nItem71: category=F, value=499\nItem72: category=A, value=504\nItem73: category=B, value=512\nItem74: category=C, value=520\nItem75: category=D, value=525\nItem76: category=E, value=533\nItem77: category=F, value=541\nItem78: category=A, value=546\nItem79: category=B, value=554\nItem80: category=C, value=562\nItem81: category=D, value=567\nItem82: category=E, value=575\nItem83: category=F, value=583\nItem84: category=A, value=588\nItem85: category=B, value=596\nItem86: category=C, value=604\nItem87: category=D, value=609\nItem88: category=E, value=617\nItem89: category=F, value=625\nItem90: category=A, value=630\nItem91: category=B, value=638\nItem92: category=C, value=646\nItem93: category=D, value=651\nItem94: category=E, value=659\nItem95: category=F, value=667\nItem96: category=A, value=672\nItem97: category=B, value=680\nItem98: category=C, value=688\nItem99: category=D, value=693"
+    },
+    {
+      "id": "T3",
+      "name": "Filtered count",
+      "query": "How many items in category A have score > 50?",
+      "ground_truth": "31",
+      "context_type": "tabular",
+      "context_size": 80,
+      "difficulty": "medium",
+      "context": "Item0: category=A, score=1\nItem1: category=B, score=4\nItem2: category=A, score=7\nItem3: category=B, score=10\nItem4: category=A, score=13\nItem5: category=B, score=16\nItem6: category=A, score=19\nItem7: category=B, score=22\nItem8: category=A, score=25\nItem9: category=B, score=28\nItem10: category=A, score=31\nItem11: category=B, score=34\nItem12: category=A, score=37\nItem13: category=B, score=40\nItem14: category=A, score=43\nItem15: category=B, score=46\nItem16: category=A, score=49\nItem17: category=B, score=52\nItem18: category=A, score=55\nItem19: category=B, score=58\nItem20: category=A, score=61\nItem21: category=B, score=64\nItem22: category=A, score=67\nItem23: category=B, score=70\nItem24: category=A, score=73\nItem25: category=B, score=76\nItem26: category=A, score=79\nItem27: category=B, score=82\nItem28: category=A, score=85\nItem29: category=B, score=88\nItem30: category=A, score=91\nItem31: category=B, score=94\nItem32: category=A, score=97\nItem33: category=B, score=100\nItem34: category=A, score=103\nItem35: category=B, score=106\nItem36: category=A, score=109\nItem37: category=B, score=112\nItem38: category=A, score=115\nItem39: category=B, score=118\nItem40: category=A, score=121\nItem41: category=B, score=124\nItem42: category=A, score=127\nItem43: category=B, score=130\nItem44: category=A, score=133\nItem45: category=B, score=136\nItem46: category=A, score=139\nItem47: category=B, score=142\nItem48: category=A, score=145\nItem49: category=B, score=148\nItem50: category=A, score=151\nItem51: category=B, score=154\nItem52: category=A, score=157\nItem53: category=B, score=160\nItem54: category=A, score=163\nItem55: category=B, score=166\nItem56: category=A, score=169\nItem57: category=B, score=172\nItem58: category=A, score=175\nItem59: category=B, score=178\nItem60: category=A, score=181\nItem61: category=B, score=184\nItem62: category=A, score=187\nItem63: category=B, score=190\nItem64: category=A, score=193\nItem65: category=B, score=196\nItem66: category=A, score=199\nItem67: category=B, score=202\nItem68: category=A, score=205\nItem69: category=B, score=208\nItem70: category=A, score=211\nItem71: category=B, score=214\nItem72: category=A, score=217\nItem73: category=B, score=220\nItem74: category=A, score=223\nItem75: category=B, score=226\nItem76: category=A, score=229\nItem77: category=B, score=232\nItem78: category=A, score=235\nItem79: category=B, score=238"
+    },
+    {
+      "id": "T4",
+      "name": "Find max revenue",
+      "query": "Which product has the highest revenue? Return the product name.",
+      "ground_truth": "Product0",
+      "context_type": "tabular",
+      "context_size": 10,
+      "difficulty": "easy",
+      "context": "Product0: revenue=500\nProduct1: revenue=470\nProduct2: revenue=440\nProduct3: revenue=410\nProduct4: revenue=380\nProduct5: revenue=350\nProduct6: revenue=320\nProduct7: revenue=290\nProduct8: revenue=260\nProduct9: revenue=230"
+    },
+    {
+      "id": "T5",
+      "name": "Multi-hop: count Paris entries",
+      "query": "How many entries have city = Paris?",
+      "ground_truth": "3",
+      "context_type": "relational",
+      "context_size": 8,
+      "difficulty": "medium",
+      "context": "User: 101 | Person: Alice | City: Paris | Country: France\nUser: 102 | Person: Bob | City: Tokyo | Country: Japan\nUser: 102 | Person: Charlie | City: Paris | Country: France\nUser: 103 | Person: Diana | City: London | Country: UK\nUser: 104 | Person: Eve | City: Paris | Country: France\nUser: 104 | Person: Frank | City: Tokyo | Country: Japan\nUser: 104 | Person: Grace | City: Rome | Country: Italy\nUser: 105 | Person: Hank | City: Berlin | Country: Germany"
+    },
+    {
+      "id": "T6",
+      "name": "Average value",
+      "query": "What is the average value? Round to nearest integer.",
+      "ground_truth": "297",
+      "context_type": "numeric",
+      "context_size": 60,
+      "difficulty": "easy",
+      "context": "Values: [0, 11, 22, 33, 44, 50, 61, 72, 83, 94, 100, 111, 122, 133, 144, 150, 161, 172, 183, 194, 200, 211, 222, 233, 244, 250, 261, 272, 283, 294, 300, 311, 322, 333, 344, 350, 361, 372, 383, 394, 400, 411, 422, 433, 444, 450, 461, 472, 483, 494, 500, 511, 522, 533, 544, 550, 561, 572, 583, 594]"
+    },
+    {
+      "id": "T7",
+      "name": "Price threshold count",
+      "query": "How many entries have price > 200?",
+      "ground_truth": "29",
+      "context_type": "tabular",
+      "context_size": 50,
+      "difficulty": "easy",
+      "context": "ID0: price=100, quantity=20\nID1: price=105, quantity=19\nID2: price=110, quantity=18\nID3: price=115, quantity=17\nID4: price=120, quantity=16\nID5: price=125, quantity=15\nID6: price=130, quantity=14\nID7: price=135, quantity=13\nID8: price=140, quantity=12\nID9: price=145, quantity=11\nID10: price=150, quantity=10\nID11: price=155, quantity=9\nID12: price=160, quantity=8\nID13: price=165, quantity=7\nID14: price=170, quantity=6\nID15: price=175, quantity=5\nID16: price=180, quantity=4\nID17: price=185, quantity=3\nID18: price=190, quantity=2\nID19: price=195, quantity=1\nID20: price=200, quantity=0\nID21: price=205, quantity=-1\nID22: price=210, quantity=-2\nID23: price=215, quantity=-3\nID24: price=220, quantity=-4\nID25: price=225, quantity=-5\nID26: price=230, quantity=-6\nID27: price=235, quantity=-7\nID28: price=240, quantity=-8\nID29: price=245, quantity=-9\nID30: price=250, quantity=-10\nID31: price=255, quantity=-11\nID32: price=260, quantity=-12\nID33: price=265, quantity=-13\nID34: price=270, quantity=-14\nID35: price=275, quantity=-15\nID36: price=280, quantity=-16\nID37: price=285, quantity=-17\nID38: price=290, quantity=-18\nID39: price=295, quantity=-19\nID40: price=300, quantity=-20\nID41: price=305, quantity=-21\nID42: price=310, quantity=-22\nID43: price=315, quantity=-23\nID44: price=320, quantity=-24\nID45: price=325, quantity=-25\nID46: price=330, quantity=-26\nID47: price=335, quantity=-27\nID48: price=340, quantity=-28\nID49: price=345, quantity=-29"
+    },
+    {
+      "id": "T8",
+      "name": "Unique user count",
+      "query": "How many unique users are there?",
+      "ground_truth": "8",
+      "context_type": "tabular",
+      "context_size": 100,
+      "difficulty": "medium",
+      "context": "Transaction: user=3001, product=X, amount=0\nTransaction: user=3002, product=Y, amount=10\nTransaction: user=3003, product=Z, amount=20\nTransaction: user=3004, product=X, amount=30\nTransaction: user=3005, product=Y, amount=40\nTransaction: user=3006, product=Z, amount=50\nTransaction: user=3007, product=X, amount=60\nTransaction: user=3008, product=Y, amount=70\nTransaction: user=3001, product=Z, amount=80\nTransaction: user=3002, product=X, amount=90\nTransaction: user=3003, product=Y, amount=100\nTransaction: user=3004, product=Z, amount=110\nTransaction: user=3005, product=X, amount=120\nTransaction: user=3006, product=Y, amount=130\nTransaction: user=3007, product=Z, amount=140\nTransaction: user=3008, product=X, amount=150\nTransaction: user=3001, product=Y, amount=160\nTransaction: user=3002, product=Z, amount=170\nTransaction: user=3003, product=X, amount=180\nTransaction: user=3004, product=Y, amount=190\nTransaction: user=3005, product=Z, amount=200\nTransaction: user=3006, product=X, amount=210\nTransaction: user=3007, product=Y, amount=220\nTransaction: user=3008, product=Z, amount=230\nTransaction: user=3001, product=X, amount=240\nTransaction: user=3002, product=Y, amount=250\nTransaction: user=3003, product=Z, amount=260\nTransaction: user=3004, product=X, amount=270\nTransaction: user=3005, product=Y, amount=280\nTransaction: user=3006, product=Z, amount=290\nTransaction: user=3007, product=X, amount=300\nTransaction: user=3008, product=Y, amount=310\nTransaction: user=3001, product=Z, amount=320\nTransaction: user=3002, product=X, amount=330\nTransaction: user=3003, product=Y, amount=340\nTransaction: user=3004, product=Z, amount=350\nTransaction: user=3005, product=X, amount=360\nTransaction: user=3006, product=Y, amount=370\nTransaction: user=3007, product=Z, amount=380\nTransaction: user=3008, product=X, amount=390\nTransaction: user=3001, product=Y, amount=400\nTransaction: user=3002, product=Z, amount=410\nTransaction: user=3003, product=X, amount=420\nTransaction: user=3004, product=Y, amount=430\nTransaction: user=3005, product=Z, amount=440\nTransaction: user=3006, product=X, amount=450\nTransaction: user=3007, product=Y, amount=460\nTransaction: user=3008, product=Z, amount=470\nTransaction: user=3001, product=X, amount=480\nTransaction: user=3002, product=Y, amount=490\nTransaction: user=3003, product=Z, amount=500\nTransaction: user=3004, product=X, amount=510\nTransaction: user=3005, product=Y, amount=520\nTransaction: user=3006, product=Z, amount=530\nTransaction: user=3007, product=X, amount=540\nTransaction: user=3008, product=Y, amount=550\nTransaction: user=3001, product=Z, amount=560\nTransaction: user=3002, product=X, amount=570\nTransaction: user=3003, product=Y, amount=580\nTransaction: user=3004, product=Z, amount=590\nTransaction: user=3005, product=X, amount=600\nTransaction: user=3006, product=Y, amount=610\nTransaction: user=3007, product=Z, amount=620\nTransaction: user=3008, product=X, amount=630\nTransaction: user=3001, product=Y, amount=640\nTransaction: user=3002, product=Z, amount=650\nTransaction: user=3003, product=X, amount=660\nTransaction: user=3004, product=Y, amount=670\nTransaction: user=3005, product=Z, amount=680\nTransaction: user=3006, product=X, amount=690\nTransaction: user=3007, product=Y, amount=700\nTransaction: user=3008, product=Z, amount=710\nTransaction: user=3001, product=X, amount=720\nTransaction: user=3002, product=Y, amount=730\nTransaction: user=3003, product=Z, amount=740\nTransaction: user=3004, product=X, amount=750\nTransaction: user=3005, product=Y, amount=760\nTransaction: user=3006, product=Z, amount=770\nTransaction: user=3007, product=X, amount=780\nTransaction: user=3008, product=Y, amount=790\nTransaction: user=3001, product=Z, amount=800\nTransaction: user=3002, product=X, amount=810\nTransaction: user=3003, product=Y, amount=820\nTransaction: user=3004, product=Z, amount=830\nTransaction: user=3005, product=X, amount=840\nTransaction: user=3006, product=Y, amount=850\nTransaction: user=3007, product=Z, amount=860\nTransaction: user=3008, product=X, amount=870\nTransaction: user=3001, product=Y, amount=880\nTransaction: user=3002, product=Z, amount=890\nTransaction: user=3003, product=X, amount=900\nTransaction: user=3004, product=Y, amount=910\nTransaction: user=3005, product=Z, amount=920\nTransaction: user=3006, product=X, amount=930\nTransaction: user=3007, product=Y, amount=940\nTransaction: user=3008, product=Z, amount=950\nTransaction: user=3001, product=X, amount=960\nTransaction: user=3002, product=Y, amount=970\nTransaction: user=3003, product=Z, amount=980\nTransaction: user=3004, product=X, amount=990"
+    }
+  ]
+}
