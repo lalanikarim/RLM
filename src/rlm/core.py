@@ -77,6 +77,9 @@ class RecursiveLanguageModel:
         answer: str | None = None
         stop_reason = RLMStopReason.MAX_ITERATIONS
 
+        last_code: str | None = None
+        code_streak = 0  # detect repeated code loops
+
         context_size = len(context)
         preview = context[:4096] if context else "(empty)"
 
@@ -124,7 +127,17 @@ class RecursiveLanguageModel:
                     break
 
                 if parse_result.code:
-                    code_output = self._execute_code(repl, parse_result.code)
+                    code = parse_result.code
+                    # Convergence detection: same code repeated 3 times
+                    if code == last_code:
+                        code_streak += 1
+                        if code_streak >= 3:
+                            break  # stuck in loop
+                    else:
+                        code_streak = 0
+                    last_code = code
+
+                    code_output = self._execute_code(repl, code)
                     repl_outputs.append(
                         f"\n```\n{parse_result.code}\n```\n→ {code_output}"
                     )
