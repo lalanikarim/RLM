@@ -95,7 +95,9 @@ class REPLEnvironment:
                         output_parts.append(str(result))
                 elif isinstance(node, ast.Expr):
                     # Evaluate expression statements like: context[:5], len_context()
-                    expr_code = compile(ast.Expression(body=node.value), "<repl>", "eval")
+                    expr_code = compile(
+                        ast.Expression(body=node.value), "<repl>", "eval"
+                    )
                     try:
                         result = eval(expr_code, exec_ns)
                         if result is not None:
@@ -205,24 +207,70 @@ def parse_llm_response(response: str) -> ParseResult:
     1. A code block (```) to execute next
     2. FINAL(answer) — direct final answer
     3. FINAL_VAR(var_name) — return the string stored in a REPL variable
+
+    For reasoning models (qwen3.6, o3), the response may contain a long
+    reasoning preamble. We check FINAL tags first (they appear at the end
+    of the response or in code blocks).
     """
+    # Clean response: remove reasoning preamble if present
+    # Reasoning text often starts with "Here's a thinking process" or similar
+    clean = _strip_reasoning_preamble(response)
+
     # Check for FINAL_VAR(var_name)
-    if FINAL_VAR_PREFIX in response:
-        start = response.index(FINAL_VAR_PREFIX) + len(FINAL_VAR_PREFIX)
-        end = response.index(")", start)
-        var_name = response[start:end].strip()
+    if FINAL_VAR_PREFIX in clean:
+        start = clean.index(FINAL_VAR_PREFIX) + len(FINAL_VAR_PREFIX)
+        end = clean.index(")", start)
+        var_name = clean[start:end].strip()
         return ParseResult(final_var_name=var_name)
 
     # Check for FINAL(answer)
-    if FINAL_TAG_START in response:
-        start = response.index(FINAL_TAG_START) + len(FINAL_TAG_START)
-        end = response.index(")", start)
-        answer = response[start:end]
+    if FINAL_TAG_START in clean:
+        start = clean.index(FINAL_TAG_START) + len(FINAL_TAG_START)
+        end = clean.index(")", start)
+        answer = clean[start:end]
         return ParseResult(final_answer=answer)
 
     # Otherwise extract code from code blocks
-    code = _extract_code_block(response)
+    code = _extract_code_block(clean)
     return ParseResult(code=code)
+
+
+def _strip_reasoning_preamble(text: str) -> str:
+    """Strip reasoning preamble from models like qwen3.6, o3, etc.
+
+    These models output a long "thinking process" in the reasoning field.
+    The actual answer (code blocks, FINAL tags) is at the end.
+    """
+    import re
+
+    # Pattern 1: "Here's a thinking process:" or similar
+    thinking_patterns = [
+        r"^(?:Here['\u2019]s)?\s*(?:a\s+)?(?:thinking\s+process|analysis|reasoning|chain\s+of\s+thought)[:\n][\s\S]*?(?=(?:```|FINAL\(|FINAL_VAR\(|Let\s+'s|Actually|Final\s+answer|Answer:|Let\s+me|I\s+will|I\s+can))",
+    ]
+
+    for pattern in thinking_patterns:
+        try:
+            result = re.sub(pattern, "", text, flags=re.IGNORECASE)
+            if result.strip() and ("```" in result or "FINAL" in result):
+                return result.strip()
+        except re.error:
+            pass
+
+    # Pattern 2: Strip everything before the LAST code block or FINAL
+    # This is a heuristic: find the last ``` or FINAL and return everything after
+    last_code = text.rfind("```")
+    last_final = text.rfind("FINAL(")
+    last_final_var = text.rfind("FINAL_VAR(")
+
+    split_points = [p for p in [last_code, last_final, last_final_var] if p >= 0]
+    if split_points:
+        # Return everything after the first meaningful split point
+        first = min(split_points)
+        candidate = text[first:].strip()
+        if len(candidate) > 10:  # skip short fragments
+            return candidate
+
+    return text
 
 
 def _extract_code_block(text: str) -> str | None:
