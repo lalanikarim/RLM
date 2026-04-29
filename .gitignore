@@ -1,0 +1,44 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Pi lens tool cache
+.pi-lens/
+
+# Testing
+.pytest_cache/
+
+# Linting / formatting caches
+.ruff_cache/
+
+# Env vars (never commit secrets)
+.env
+
+# OS
+.DS_Store
+Thumbs.db
