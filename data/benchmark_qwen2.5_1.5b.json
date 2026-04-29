@@ -1,0 +1,138 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-29 13:27:08",
+    "dataset": {
+      "num_cases": 8,
+      "case_ids": [
+        "T1",
+        "T2",
+        "T3",
+        "T4",
+        "T5",
+        "T6",
+        "T7",
+        "T8"
+      ],
+      "difficulty_distribution": {
+        "medium": 4,
+        "easy": 4
+      }
+    },
+    "methods": [
+      "standard"
+    ]
+  },
+  "summary": {
+    "standard": {
+      "method_name": "Standard LLM",
+      "num_trials": 6,
+      "accuracy": 0.0,
+      "accuracy_pct": 0.0,
+      "avg_latency_s": 2.3,
+      "median_latency_s": 1.52,
+      "std_latency_s": 2.13,
+      "avg_calls": 1.0,
+      "avg_iterations": 1.0,
+      "avg_tokens": 1108,
+      "num_successes": 0,
+      "num_failures": 6,
+      "per_case_accuracy": {
+        "T4": 0.0,
+        "T6": 0.0,
+        "T7": 0.0
+      }
+    }
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "case_id": "T4",
+      "case_name": "Find max revenue",
+      "ground_truth": "Product0",
+      "model_answer": "To determine which product has the highest revenue, we need to compare the given revenues of each product and identify the one with the largest value.\n\nHere are the provided revenues:\n- Product 1: $500\n- Product 2: $470\n- Product 3: $440\n- Product 4: $380\n- Product 5: $350\n- Product 6: $320\n- Product 7: $290\n- Product 8: $260\n- Product 9: $230\n\nBy comparing these values, we can see that the highest revenue is $500.\n\nTherefore, the product with the highest revenue is **Product 1**.",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 2.461413860321045,
+      "total_tokens": 272,
+      "method": "standard",
+      "error": null,
+      "context": "Product0: revenue=500\nProduct1: revenue=470\nProduct2: revenue=440\nProduct3: revenue=410\nProduct4: re"
+    },
+    {
+      "trial": 2,
+      "case_id": "T4",
+      "case_name": "Find max revenue",
+      "ground_truth": "Product0",
+      "model_answer": "To determine which product has the highest revenue, we need to compare the given revenues of each product and identify the one with the largest value.\n\nHere are the provided revenues:\n- Product 1: $500\n- Product 2: $470\n- Product 3: $440\n- Product 4: $380\n- Product 5: $350\n- Product 6: $320\n- Product 7: $290\n- Product 8: $260\n- Product 9: $230\n\nBy comparing these values, we can see that the highest revenue is $500.\n\nTherefore, the product with the highest revenue is **Product 1**.",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 0.5844497680664062,
+      "total_tokens": 272,
+      "method": "standard",
+      "error": null,
+      "context": "Product0: revenue=500\nProduct1: revenue=470\nProduct2: revenue=440\nProduct3: revenue=410\nProduct4: re"
+    },
+    {
+      "trial": 1,
+      "case_id": "T6",
+      "case_name": "Average value",
+      "ground_truth": "297",
+      "model_answer": "To find the average value of the given values in the context provided:\n\n1. **List the Values**: The values are listed as [0, 11, 22, 33, 44, 50, 61, 72, 83, 94, 100, 111, 122, 133, 144, 150, 161, 172, 183, 194, 200, 211, 222, 233, 244, 250, 261, 272, 283, 294, 300, 311, 322, 333, 344, 350, 361, 372, 383, 394, 400, 411, 422, 433, 444, 450, 461, 472, 483, 494].\n\n2. **Sum the Values**: Add all the values together:\n   \\[\n   0 + 11 + 22 + 33 + 44 + 50 + 61 + 72 + 83 + 94 + 100 + 111 + 122 + 133 + 144",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 4.836648941040039,
+      "total_tokens": 2159,
+      "method": "standard",
+      "error": null,
+      "context": "Values: [0, 11, 22, 33, 44, 50, 61, 72, 83, 94, 100, 111, 122, 133, 144, 150, 161, 172, 183, 194, 20"
+    },
+    {
+      "trial": 2,
+      "case_id": "T6",
+      "case_name": "Average value",
+      "ground_truth": "297",
+      "model_answer": "To find the average value of the given values in the context provided:\n\n1. **List the Values**: The values are listed as [0, 11, 22, 33, 44, 50, 61, 72, 83, 94, 100, 111, 122, 133, 144, 150, 161, 172, 183, 194, 200, 211, 222, 233, 244, 250, 261, 272, 283, 294, 300, 311, 322, 333, 344, 350, 361, 372, 383, 394, 400, 411, 422, 433, 444, 450, 461, 472, 483, 494].\n\n2. **Sum the Values**: Add all the values together:\n   \\[\n   0 + 11 + 22 + 33 + 44 + 50 + 61 + 72 + 83 + 94 + 100 + 111 + 122 + 133 + 144",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 4.9130730628967285,
+      "total_tokens": 2159,
+      "method": "standard",
+      "error": null,
+      "context": "Values: [0, 11, 22, 33, 44, 50, 61, 72, 83, 94, 100, 111, 122, 133, 144, 150, 161, 172, 183, 194, 20"
+    },
+    {
+      "trial": 1,
+      "case_id": "T7",
+      "case_name": "Price threshold count",
+      "ground_truth": "29",
+      "model_answer": "To determine how many entries have a price greater than 200, we need to count the number of IDs where the \"price\" value is greater than 200. Here's the breakdown:\n\n- ID40 has a price of 300.\n- ID41 has a price of 305.\n- ID42 has a price of 310.\n- ID43 has a price of 315.\n- ID44 has a price of 320.\n- ID45 has a price of 325.\n\nAll these IDs have prices greater than 200. Therefore, there are 6 entries with a price greater than 200.",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 0.5089330673217773,
+      "total_tokens": 894,
+      "method": "standard",
+      "error": null,
+      "context": "ID0: price=100, quantity=20\nID1: price=105, quantity=19\nID2: price=110, quantity=18\nID3: price=115, "
+    },
+    {
+      "trial": 2,
+      "case_id": "T7",
+      "case_name": "Price threshold count",
+      "ground_truth": "29",
+      "model_answer": "To determine how many entries have a price greater than 200, we need to count the number of IDs where the \"price\" value is greater than 200. Here's the breakdown:\n\n- ID40 has a price of 300.\n- ID41 has a price of 305.\n- ID42 has a price of 310.\n- ID43 has a price of 315.\n- ID44 has a price of 320.\n- ID45 has a price of 325.\n\nAll these IDs have prices greater than 200. Therefore, there are 6 entries that meet the criteria.\n\nThe answer is: **6**",
+      "correct": false,
+      "llm_calls": 1,
+      "total_iterations": 1,
+      "latency_s": 0.5098960399627686,
+      "total_tokens": 896,
+      "method": "standard",
+      "error": null,
+      "context": "ID0: price=100, quantity=20\nID1: price=105, quantity=19\nID2: price=110, quantity=18\nID3: price=115, "
+    }
+  ]
+}
