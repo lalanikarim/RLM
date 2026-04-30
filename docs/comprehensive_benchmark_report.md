@@ -281,19 +281,36 @@ Across all strategies and tasks:
 
 This suggests a **power-law relationship** between model size and RLM effectiveness. The transition from "inconsistent" to "reliable" happens around 4B parameters.
 
-### 5. Non-Recursive RLM is Consistently Inferior
+### 5. Non-Recursive RLM: Paper Findings vs Our Implementation
 
-Non-recursive RLM (REPL-only, no recurse) **always loses** to both standard LLM and recursive RLM:
+The paper evaluates **"RLM (no sub-calls)"** as an ablation, but it is **structurally different** from our implementation:
 
-- More LLM calls (4–6 vs. 1)
-- More iterations (3–5 vs. 1)
-- Lower or equal accuracy
+| Aspect          | Paper's "no sub-calls"                    | Our "no recurse"                    |
+| --------------- | ----------------------------------------- | ----------------------------------- |
+| Prompt handling | Full context in prompt window             | Prompt as REPL variable (offloaded) |
+| Agent type      | Action-based (Finish/Exec/Search/sub_LLM) | REPL with code execution            |
+| Sub-LLM         | Available as an action                    | Not available                       |
 
-The only benefit is structured code execution, but this doesn't translate to accuracy gains. For production:
+The paper's ablation keeps code execution but removes recursive sub-calls and offloading — the model has the full context in its window but can't write recursive loops over it.
 
-- **Use standard LLM** for simple tasks (1 call)
-- **Use RLM recursion** for complex tasks (2–3 calls)
-- **Avoid non-recursive RLM** — it's the worst of both worlds
+**Paper results (Qwen3-Coder-480B):**
+
+| Task         | RLM (full) | RLM (no sub-calls) | Delta   |
+| ------------ | ---------- | ------------------ | ------- |
+| CodeQA       | 56.0       | **66.0**           | **+10** |
+| BrowseComp+  | 44.7       | 46.0               | +1.3    |
+| OOLONG       | 48.0       | 43.5               | -4.5    |
+| OOLONG-Pairs | 23.1       | 17.3               | -5.8    |
+
+**Our results differ** because we keep the REPL variable offloading (the key RLM design choice) but just remove the `recurse()` function. This is a different ablation — one that tests "how much value does symbolic recursion add when the prompt is already offloaded?"
+
+Our finding (non-recursive RLM consistently underperforms on our synthetic tasks) may not generalize to the paper's ablation, where code execution + action-based delegation can outperform recursion on some tasks (CodeQA).
+
+**For production:**
+
+- **Simple tasks**: Standard LLM (1 call, fast)
+- **Complex long-context tasks**: RLM recursion (decomposes problems)
+- **Non-recursive ablation**: Interesting for research, but our synthetic benchmark shows it adds cost without accuracy gains on this task set
 
 ---
 
