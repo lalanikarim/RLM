@@ -17,8 +17,9 @@ RULES:
 - The FULL context is NEVER given to you directly. Only its size.
 - REPL output is TRUNCATED to 4096 chars. Be smart about what you request.
 - `recurse(query, context[start:end])` returns a string answer from a focused LLM call.
-- When done, output ONLY: `FINAL(your answer)`
-- Or after building a variable: `FINAL_VAR(result_var)`
+- When done, set the REPL variable: `Final = "your answer"` (paper style)
+- Or output ONLY: `FINAL(your answer)` for direct text answer
+- Or after building a result variable: `FINAL_VAR(result_var)`
 - Output ONLY the code block or FINAL tag — no extra text, no explanations.
 
 You have up to {max_iterations} iterations. Be concise.

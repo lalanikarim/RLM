@@ -142,7 +142,16 @@ class RecursiveLanguageModel:
                         f"\n```\n{parse_result.code}\n```\n→ {code_output}"
                     )
 
-                    # Check if code output itself has FINAL tags
+                    # Paper §2: Check if model set the Final variable in REPL.
+                    # This is the paper's native termination mechanism — the LLM
+                    # writes `Final = "answer"` and we detect it immediately.
+                    final_var_value = repl.get_variable("Final")
+                    if final_var_value is not None:
+                        answer = final_var_value
+                        stop_reason = RLMStopReason.FINAL_VAR
+                        break
+
+                    # Check if code output itself has FINAL tags (text-based fallback)
                     code_parse = parse_llm_response(code_output)
                     if code_parse.is_done:
                         if code_parse.final_answer:
@@ -157,11 +166,26 @@ class RecursiveLanguageModel:
                             )
                         break
 
-                    # Feed REPL output back for next turn
+                    # Paper §2 Algorithm 1: hist <- hist || code || Metadata(stdout)
+                    # Only constant-size metadata about stdout is appended to history.
+                    # This is key: it forces M to rely on variables and sub-calls
+                    # to manage long strings instead of polluting its window.
+                    stdout_len = len(code_output)
+                    stdout_preview = (
+                        code_output[:512] if stdout_len > 512 else code_output
+                    )
+                    stdout_metadata = (
+                        f"Length: {stdout_len} characters. Preview: {stdout_preview}"
+                    )
                     conversation_history.append(
                         {
                             "role": "user",
-                            "content": f"[REPL Output]\n{code_output}\n\nContinue or provide FINAL(answer).",
+                            "content": (
+                                f"[REPL Output]\n"
+                                f"Code executed:\n```\n{code}\n```\n\n"
+                                f"{stdout_metadata}\n\n"
+                                f"Continue or provide FINAL(answer)."
+                            ),
                         }
                     )
 
@@ -180,7 +204,9 @@ class RecursiveLanguageModel:
                 raw_text = response.choices[0].message.content or ""
                 # Reasoning models put answer in reasoning field
                 if not raw_text:
-                    raw_text = getattr(response.choices[0].message, "reasoning", "") or ""
+                    raw_text = (
+                        getattr(response.choices[0].message, "reasoning", "") or ""
+                    )
                 if response.usage:
                     usage = response.usage
                 else:

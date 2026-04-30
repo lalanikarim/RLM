@@ -24,7 +24,7 @@ Before documenting divergences, these are the key design choices where our imple
 
 ## Divergences
 
-### D1: Metadata(stdout) vs Raw stdout — **HIGH PRIORITY**
+### D1: Metadata(stdout) vs Raw stdout — **RESOLVED** ✅
 
 **Paper (§2, footnote 1):**
 
@@ -69,7 +69,7 @@ conversation_history.append(
 
 ---
 
-### D2: History composition — **LOW PRIORITY**
+### D2: History composition — **RESOLVED** ✅
 
 **Paper (§2):**
 
@@ -89,9 +89,11 @@ The code is implicitly in the history because we keep appending user messages to
 
 **Impact level:** Low. The paper's explicit construction is cleaner but functionally similar.
 
+**Resolution (2026-04-30):** History now explicitly appends `code || Metadata(stdout)` per Algorithm 1, matching the paper's concatenation pattern.
+
 ---
 
-### D3: FINAL detection via text vs REPL variable — **LOW PRIORITY**
+### D3: FINAL detection via text vs REPL variable — **RESOLVED** ✅
 
 **Paper (§2):**
 
@@ -124,6 +126,8 @@ if code_parse.is_done: ...
 - Our approach is more robust: covers the case where the LLM outputs code that prints FINAL, which the paper's mechanism wouldn't catch.
 - The paper's variable-based approach is more explicit and harder to accidentally trigger from model text.
 - Our text-based approach could theoretically be triggered by a model saying "FINAL" in normal prose (though our prompt hardening makes this unlikely).
+
+**Resolution (2026-04-30):** REPL `Final` variable detection added in `core.py` — checked immediately after code execution, before text-based FINAL parsing. `FINAL()` tags retained as fallback. Prompt updated to document both mechanisms.
 
 ---
 
@@ -196,32 +200,43 @@ else:
 
 ## Divergence Summary
 
-| ID     | Issue                             | Severity             | Paper Principle                         | Status                            |
-| ------ | --------------------------------- | -------------------- | --------------------------------------- | --------------------------------- |
-| **D1** | Raw stdout in history             | **High**             | Metadata(stdout) is _key_               | ⚠️ Needs fixing                   |
-| **D2** | History composition order         | Low                  | Explicit code + metadata append         | ✅ Functionally equivalent        |
-| **D3** | Text-based FINAL vs REPL variable | Low                  | `state[Final]` variable                 | ✅ Functionally equivalent        |
-| **D4** | Flat recursion (depth = 1)        | Medium               | Paper uses depth 1 but discusses deeper | ✅ Aligned for current benchmarks |
-| **D5** | Reasoning model field handling    | Necessary adaptation | Paper assumes standard response fields  | ✅ Required for reasoning models  |
-| **D6** | Convergence detection             | Practical addition   | Paper relies on max iterations          | ✅ Safety enhancement             |
+| ID     | Issue                             | Severity             | Paper Principle                         | Status                              |
+| ------ | --------------------------------- | -------------------- | --------------------------------------- | ----------------------------------- |
+| **D1** | Raw stdout in history             | **High**             | Metadata(stdout) is _key_               | ✅ Fixed — Metadata(stdout) impl    |
+| **D2** | History composition order         | Low                  | Explicit code + metadata append         | ✅ Fixed — hist \|\| code \|\| meta |
+| **D3** | Text-based FINAL vs REPL variable | Low                  | `state[Final]` variable                 | ✅ Fixed — Final var + FINAL()      |
+| **D4** | Flat recursion (depth = 1)        | Medium               | Paper uses depth 1 but discusses deeper | ✅ Aligned for current benchmarks   |
+| **D5** | Reasoning model field handling    | Necessary adaptation | Paper assumes standard response fields  | ✅ Required for reasoning models    |
+| **D6** | Convergence detection             | Practical addition   | Paper relies on max iterations          | ✅ Safety enhancement               |
 
 ---
 
 ## Recommended Action Items
 
-### Immediate
+### ✅ Completed (2026-04-30)
 
-1. **[D1]** Implement `Metadata(stdout)` — truncate stdout to prefix + length before appending to history. This is the most significant divergence and aligns with the paper's core insight that the LLM should _never_ see raw context or stdout directly.
+1. **[D1]** Implemented `Metadata(stdout)` — length + 512-char preview, replaces raw stdout in history.
+2. **[D2]** History now explicitly constructs `code || Metadata(stdout)` per Algorithm 1.
+3. **[D3]** REPL `Final` variable detection added as native termination mechanism; `FINAL()` tags retained as fallback.
 
 ### Medium-term
 
-2. **[D4]** Support recursive depth > 1 when the paper evaluates deeper recursion. This requires nesting REPLs with their own `recurse()` injections.
+4. **[D4]** Support recursive depth > 1 when the paper evaluates deeper recursion. This requires nesting REPLs with their own `recurse()` injections.
 
-### Optional
+### Completed
 
-3. **[D2]** Explicitly construct history as `history || code || Metadata(stdout)` for clarity, matching the paper's Algorithm 1 more closely.
+- D1: Implemented — `core.py` `_execute_turns()` uses Metadata(stdout), 512-char preview
+- D2: Implemented — history explicitly contains code block + metadata
+- D3: Implemented — `Final` variable check before text-based FINAL parsing; prompt updated
 
-4. **[D3]** Consider REPL variable-based FINAL for stricter termination, or keep text-based for robustness. A hybrid approach (variable for REPL writes, text for LLM responses) could work.
+### Remaining
+
+- D4: Recursive depth > 1 — requires nested REPLs, gated by `max_recursion_depth` config (see `docs/implementation_plan.md`)
+- D5/D6: No action needed (adaptations/additions, not divergences)
+
+---
+
+_This document was generated by comparing our implementation against Algorithm 1 and the three design choices from Zhang, Kraska & Khattab (2025). Updated 2026-04-30 with resolution status._
 
 ---
 
