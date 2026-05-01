@@ -19,12 +19,16 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from dotenv import load_dotenv
 from openai import OpenAI
 from openai.types import CompletionUsage
 
 from rlm import RecursiveLanguageModel
 from rlm.repl import REPLEnvironment, parse_llm_response
 from rlm.prompts import ROOT_SYSTEM_PROMPT
+
+# Load .env from project root (parent of examples/)
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 # ---------------------------------------------------------------------------
@@ -271,8 +275,11 @@ def run_no_recurse(query: str, context: str) -> TrialResult:
         }
     ]
 
-    last_code = None
+    last_raw: str | None = None
+    last_code: str | None = None
+    last_reasoning: str | None = None
     code_streak = 0
+    reasoning_streak = 0
     iteration = 0
     answer = None
     repl_outputs = []
@@ -285,14 +292,23 @@ def run_no_recurse(query: str, context: str) -> TrialResult:
     while iteration < 30:
         iteration += 1
 
-        # Parse previous response
+        # Parse previous response (skip first iteration)
         if llm_calls_count > 0:
-            parse_result = parse_llm_response(last_code or "")
+            parse_result = parse_llm_response(last_raw or "")
+
             if parse_result.final_answer:
                 answer = parse_result.final_answer
                 break
+
+            # Paper §2: Check REPL Final variable
+            final_var = repl.get_variable("Final")
+            if final_var is not None:
+                answer = final_var
+                break
+
             if parse_result.code:
                 code = parse_result.code
+                # Convergence: same code repeated 3 times
                 if code == last_code:
                     code_streak += 1
                     if code_streak >= 3:
@@ -304,9 +320,13 @@ def run_no_recurse(query: str, context: str) -> TrialResult:
                 output = repl.execute(code)
                 repl_outputs.append(output[:200])
 
+                # Check output for FINAL or Final
                 code_parse = parse_llm_response(output)
                 if code_parse.final_answer:
                     answer = code_parse.final_answer
+                    break
+                if repl.get_variable("Final") is not None:
+                    answer = repl.get_variable("Final")
                     break
 
                 conversation_history.append(
@@ -315,6 +335,19 @@ def run_no_recurse(query: str, context: str) -> TrialResult:
                         "content": f"[REPL Output]\n{output}\n\nContinue or provide FINAL(answer).",
                     }
                 )
+            else:
+                # No code block — model is outputting reasoning text.
+                # Track reasoning convergence to avoid 30 useless API calls.
+                if last_raw and len(last_raw) > 50:
+                    if last_reasoning == last_raw:
+                        reasoning_streak += 1
+                    else:
+                        reasoning_streak = 1
+                    last_reasoning = last_raw
+                    if reasoning_streak >= 3:
+                        break  # model is stuck in reasoning
+                else:
+                    reasoning_streak = 0
 
         # LLM call
         messages = [{"role": "system", "content": system_prompt}]
@@ -330,7 +363,7 @@ def run_no_recurse(query: str, context: str) -> TrialResult:
             )
             raw = response.choices[0].message.content or ""
             raw = getattr(response.choices[0].message, "reasoning", "") or raw
-            last_code = raw
+            last_raw = raw
             usage = response.usage or CompletionUsage(
                 prompt_tokens=0, completion_tokens=0, total_tokens=0
             )
