@@ -15,7 +15,10 @@ from .models import (
     RLMResult,
     RLMStopReason,
 )
-from .prompts import RECURSE_SYSTEM_PROMPT, ROOT_SYSTEM_PROMPT
+from .prompts import (
+    RECURSE_SYSTEM_PROMPT_NO_RECURSE,
+    ROOT_SYSTEM_PROMPT,
+)
 from .repl import REPLEnvironment, parse_llm_response
 
 
@@ -254,23 +257,53 @@ class RecursiveLanguageModel:
             total_latency_ms=sum(c.latency_ms for c in llm_calls),
         )
 
-    def _execute_code(self, repl: REPLEnvironment, code: str) -> str:
+    def _execute_code(self, repl: REPLEnvironment, code: str, depth: int = 1) -> str:
         """Execute code in the REPL with recurse function injected."""
 
         def recurse_fn(sub_query: str, sub_context: str) -> str:
-            return self._recursive_call(sub_query, sub_context)
+            return self._recursive_call(
+                sub_query, sub_context, depth, self.config.max_recurse_depth
+            )
 
         return repl.execute(code, recurse_fn=recurse_fn)
 
-    def _recursive_call(self, sub_query: str, sub_context: str) -> str:
+    def _recursive_call(
+        self,
+        sub_query: str,
+        sub_context: str,
+        depth: int = 1,
+        max_depth: int | None = None,
+    ) -> str:
         """A recursive LLM call on a context subset.
 
-        This is a SEPARATE API call — the recursive LLM gets only the
-        sub_context, making it ideal for focused analysis.
+        When depth < max_depth: runs a mini-REPL with recurse() capability
+        (enabling deeper nesting). When depth >= max_depth: flat LLM call.
+
+        Args:
+            sub_query: The sub-question to answer
+            sub_context: The text segment to analyze
+            depth: Current recursion depth (1-indexed)
+            max_depth: Maximum allowed recursion depth from config
+        """
+        if max_depth is None:
+            max_depth = self.config.max_recurse_depth
+
+        # Base case: flat LLM call at max depth
+        if depth >= max_depth:
+            return self._flat_recursive_call(sub_query, sub_context)
+
+        # Recursive case: mini-REPL with recurse() injection
+        return self._run_mini_repl(sub_query, sub_context, depth, max_depth)
+
+    def _flat_recursive_call(self, sub_query: str, sub_context: str) -> str:
+        """Flat LLM call — no REPL, just read and answer.
+
+        This is the base case at max recursion depth. The model gets only
+        the sub_context via a single API call.
         """
         try:
             messages = [
-                {"role": "system", "content": RECURSE_SYSTEM_PROMPT},
+                {"role": "system", "content": RECURSE_SYSTEM_PROMPT_NO_RECURSE},
                 {
                     "role": "user",
                     "content": f"Sub-query: {sub_query}\n\nText segment:\n{sub_context}",
@@ -288,7 +321,163 @@ class RecursiveLanguageModel:
 
             parse_result = parse_llm_response(text)
             if parse_result.final_answer:
-                return parse_result.final_answer
+                return parse_result.final_answer  # type: ignore[return-value]
             return text
         except Exception as e:
             return f"[Recursive call failed: {e}]"
+
+    def _run_mini_repl(
+        self, sub_query: str, sub_context: str, depth: int, max_depth: int
+    ) -> str:
+        """Run a mini REPL turn loop for a recursive sub-call.
+
+        This is a simplified version of _execute_turns, tailored for
+        recursive sub-calls. It creates a mini-REPL with recurse() injection,
+        allowing the model to process the sub_context programmatically
+        while delegating deeper questions to nested calls.
+        """
+        repl = REPLEnvironment(max_output_length=self.config.max_repl_output_length)
+        repl.initialize(sub_context)
+
+        def nested_recurse_fn(nested_query: str, nested_context: str) -> str:
+            return self._recursive_call(
+                nested_query, nested_context, depth + 1, max_depth
+            )
+
+        mini_max_iterations = min(10, self.config.max_iterations)
+
+        context_size = len(sub_context)
+        preview = sub_context[:1024] if sub_context else "(empty)"
+
+        system_prompt = ROOT_SYSTEM_PROMPT.format(
+            max_iterations=mini_max_iterations,
+            context_size=context_size,
+            context_preview=preview,
+        )
+
+        conversation_history: list[dict[str, str]] = [
+            {
+                "role": "user",
+                "content": (
+                    f"Sub-query: {sub_query}\n\n"
+                    f"Read the text segment and answer the sub-query. "
+                    f"You have access to the `context` variable in a REPL. "
+                    f"Use `recurse(query, context[start:end])` to make focused sub-calls "
+                    f"on smaller text segments. "
+                    f'When done, set `Final = "your answer"` or use `FINAL(your answer)`.'
+                ),
+            }
+        ]
+
+        answer: str = "(no answer from recursive call)"
+        llm_calls: list[LLMCallRecord] = []
+        iteration = 0
+        last_code: str | None = None
+        code_streak = 0
+
+        while iteration < mini_max_iterations:
+            iteration += 1
+
+            # Parse previous LLM response (skip on first iteration)
+            if len(llm_calls) > 0:
+                last_record = llm_calls[-1]
+                llm_text = getattr(last_record, "_raw_text", "")
+
+                # Check FINAL tags in LLM response
+                parse_result = parse_llm_response(llm_text)
+                if parse_result.final_answer:
+                    answer = parse_result.final_answer
+                    break
+
+                # Paper §2: Check REPL Final variable
+                final_val = repl.get_variable("Final")
+                if final_val is not None:
+                    answer = final_val
+                    break
+
+                if parse_result.code:
+                    code = parse_result.code
+                    # Convergence detection
+                    if code == last_code:
+                        code_streak += 1
+                        if code_streak >= 3:
+                            break
+                    else:
+                        code_streak = 0
+                    last_code = code
+
+                    # Execute code with nested recurse
+                    output = repl.execute(code, recurse_fn=nested_recurse_fn)
+
+                    # Check for FINAL in output
+                    output_parse = parse_llm_response(output)
+                    if output_parse.final_answer:
+                        answer = output_parse.final_answer
+                        break
+
+                    # Check for Final variable set by code
+                    final_val = repl.get_variable("Final")
+                    if final_val is not None:
+                        answer = final_val
+                        break
+
+                    # D1: Metadata(stdout) — keep history compact
+                    stdout_len = len(output)
+                    stdout_preview = output[:512] if stdout_len > 512 else output
+                    stdout_metadata = (
+                        f"Length: {stdout_len} characters. Preview: {stdout_preview}"
+                    )
+                    conversation_history.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                f"[REPL Output]\n"
+                                f"Code executed:\n```\n{code}\n```\n\n"
+                                f"{stdout_metadata}\n\n"
+                                f"Continue or provide FINAL(answer)."
+                            ),
+                        }
+                    )
+
+            # LLM call
+            call_start = time.time()
+            messages = [{"role": "system", "content": system_prompt}]
+            messages.extend(conversation_history)
+
+            try:
+                response = self.recurse_client.chat.completions.create(  # type: ignore[arg-type]
+                    model=self.config.recursive_llm_model,
+                    messages=messages,  # type: ignore[arg-type]
+                    temperature=0.0,
+                    max_tokens=2048,
+                )
+                raw_text = response.choices[0].message.content or ""
+                if not raw_text:
+                    raw_text = (
+                        getattr(response.choices[0].message, "reasoning", "") or ""
+                    )
+                usage = response.usage or CompletionUsage(
+                    prompt_tokens=0, completion_tokens=0, total_tokens=0
+                )
+            except Exception as e:
+                raw_text = f"[Recursive call failed: {e}]"
+                usage = CompletionUsage(
+                    prompt_tokens=0, completion_tokens=0, total_tokens=0
+                )
+
+            elapsed_ms = (time.time() - call_start) * 1000
+
+            record = LLMCallRecord(
+                model=self.config.recursive_llm_model,
+                system_prompt=system_prompt,
+                user_messages=conversation_history,
+                temperature=0.0,
+                max_tokens=2048,
+                input_tokens=usage.prompt_tokens,
+                output_tokens=usage.completion_tokens,
+                latency_ms=elapsed_ms,
+            )
+            record._raw_text = raw_text  # type: ignore[attr-defined]
+            llm_calls.append(record)
+
+        return answer

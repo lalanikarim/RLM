@@ -131,7 +131,7 @@ if code_parse.is_done: ...
 
 ---
 
-### D4: Flat recursion (depth = 1) — **MEDIUM PRIORITY**
+### D4: Flat recursion (depth = 1) — **RESOLVED** ✅
 
 **Paper (§6, Limitations):**
 
@@ -147,7 +147,15 @@ Our `_recursive_call()` is a single API call — it does not recurse further. Th
 - The paper identifies deeper recursion as an area for future work. Our implementation would need to be restructured to support nested REPLs with their own `recurse()` functions.
 - For the paper's current benchmarks, depth 1 is sufficient and our implementation is aligned.
 
-**Proposed future work:** Support recursive depth > 1 by wrapping `_recursive_call()` in a mini-REPL with its own `recurse()` injection.
+**Resolution (2026-05-01):** Implemented D4. `_recursive_call()` now tracks depth via `max_recurse_depth` config. At `depth < max_depth`, a mini-REPL with `recurse()` injection is used. At `depth >= max_depth`, a flat LLM call (`_flat_recursive_call()`) is the base case. The mini-REPL supports full turn loops with Metadata(stdout), Final variable detection, and convergence.
+
+**Architecture:**
+
+- `_recursive_call(sub_query, sub_context, depth, max_depth)` — routes to mini-REPL or flat call
+- `_flat_recursive_call()` — base case, single API call with `RECURSE_SYSTEM_PROMPT_NO_RECURSE`
+- `_run_mini_repl()` — full mini turn loop with `recurse()` injection for deeper nesting
+- `_execute_code(repl, code, depth)` — passes depth to `recurse_fn`
+- Two prompts: `RECURSE_SYSTEM_PROMPT_WITH_RECURSE` (with recurse capability) and `RECURSE_SYSTEM_PROMPT_NO_RECURSE` (read-only)
 
 ---
 
@@ -205,7 +213,7 @@ else:
 | **D1** | Raw stdout in history             | **High**             | Metadata(stdout) is _key_               | ✅ Fixed — Metadata(stdout) impl    |
 | **D2** | History composition order         | Low                  | Explicit code + metadata append         | ✅ Fixed — hist \|\| code \|\| meta |
 | **D3** | Text-based FINAL vs REPL variable | Low                  | `state[Final]` variable                 | ✅ Fixed — Final var + FINAL()      |
-| **D4** | Flat recursion (depth = 1)        | Medium               | Paper uses depth 1 but discusses deeper | ✅ Aligned for current benchmarks   |
+| **D4** | Flat recursion (depth = 1)        | Medium               | Paper uses depth 1 but discusses deeper | ✅ Fixed — mini-REPL at depth < max |
 | **D5** | Reasoning model field handling    | Necessary adaptation | Paper assumes standard response fields  | ✅ Required for reasoning models    |
 | **D6** | Convergence detection             | Practical addition   | Paper relies on max iterations          | ✅ Safety enhancement               |
 
@@ -213,26 +221,17 @@ else:
 
 ## Recommended Action Items
 
-### ✅ Completed (2026-04-30)
+### ✅ Completed (2026-04-30 / 2026-05-01)
 
-1. **[D1]** Implemented `Metadata(stdout)` — length + 512-char preview, replaces raw stdout in history.
-2. **[D2]** History now explicitly constructs `code || Metadata(stdout)` per Algorithm 1.
-3. **[D3]** REPL `Final` variable detection added as native termination mechanism; `FINAL()` tags retained as fallback.
-
-### Medium-term
-
-4. **[D4]** Support recursive depth > 1 when the paper evaluates deeper recursion. This requires nesting REPLs with their own `recurse()` injections.
-
-### Completed
-
-- D1: Implemented — `core.py` `_execute_turns()` uses Metadata(stdout), 512-char preview
-- D2: Implemented — history explicitly contains code block + metadata
-- D3: Implemented — `Final` variable check before text-based FINAL parsing; prompt updated
+1. **[D1]** `Metadata(stdout)` — length + 512-char preview, replaces raw stdout in history.
+2. **[D2]** History explicitly constructs `code || Metadata(stdout)` per Algorithm 1.
+3. **[D3]** REPL `Final` variable detection as native termination; `FINAL()` tags as fallback.
+4. **[D4]** Depth-aware recursion: mini-REPL at depth < max, flat call at depth = max.
 
 ### Remaining
 
-- D4: Recursive depth > 1 — requires nested REPLs, gated by `max_recursion_depth` config (see `docs/implementation_plan.md`)
-- D5/D6: No action needed (adaptations/additions, not divergences)
+- None. All paper divergences (D1–D4) have been addressed.
+- D5/D6: Not divergences — adaptations and safety additions, no action needed.
 
 ---
 

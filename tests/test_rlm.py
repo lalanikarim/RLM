@@ -147,3 +147,32 @@ class TestMetadataStdout:
         assert "Length:" in content
         assert "Preview:" in content
         assert "Continue or provide FINAL(answer)." in content
+
+
+class TestRecursiveDepth:
+    """D4: Verify depth-aware recursion configuration."""
+
+    def test_default_max_recurse_depth_is_one(self):
+        """D4: Default max_recurse_depth=1 matches paper's tested depth."""
+        from rlm.models import RLMConfig
+
+        cfg = RLMConfig()
+        assert cfg.max_recurse_depth == 1
+
+    def test_config_allows_deeper_recursion(self):
+        """D4: Can configure max_recurse_depth > 1."""
+        from rlm.models import RLMConfig
+
+        cfg = RLMConfig(max_recurse_depth=3)
+        assert cfg.max_recurse_depth == 3
+
+    def test_repl_passes_recurse_fn_through(self):
+        """D4: Verify recurse_fn is available in REPL namespace."""
+        repl = REPLEnvironment(max_output_length=4096)
+        repl.initialize("test context")
+
+        def dummy_recurse(q, c):
+            return "recurse_result"
+
+        output = repl.execute("recurse('q', 'c')", recurse_fn=dummy_recurse)
+        assert "recurse_result" in output

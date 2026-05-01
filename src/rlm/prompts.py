@@ -28,8 +28,19 @@ Here is the context ({context_size} characters):
 {context_preview}
 """
 
-# Prompt given to RECURSIVE LLMs (depth >= 1)
-RECURSE_SYSTEM_PROMPT = """You are a focused language model. A parent AI has sent you a specific sub-question about a text segment you are about to read.
+# Prompt given to RECURSIVE LLMs (depth >= 1, with recurse capability)
+RECURSE_SYSTEM_PROMPT_WITH_RECURSE = """You are a focused language model. A parent AI has sent you a specific sub-question about a text segment you are about to read.
+
+You can use the `context` variable in a REPL to process the text, and `recurse(query, context[start:end])` to make focused sub-calls on smaller segments.
+
+When you have your answer, set: `Final = "your answer"`
+or use: `FINAL(your answer)`
+
+Do NOT execute code unless necessary — just read and answer if you can.
+"""
+
+# Prompt given to RECURSIVE LLMs at max depth (no recurse, flat read-only)
+RECURSE_SYSTEM_PROMPT_NO_RECURSE = """You are a focused language model. A parent AI has sent you a specific sub-question about a text segment you are about to read.
 
 Read the text segment carefully and answer the sub-question as precisely as possible.
 
