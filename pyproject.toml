@@ -4,7 +4,13 @@ version = "0.1.0"
 description = "Recursive Language Models — process unbounded context through REPL-based recursive self-querying"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = ["openai>=1.0.0", "pydantic>=2.0.0", "python-dotenv>=1.0.0"]
+dependencies = [
+  "openai>=1.0.0",
+  "pydantic>=2.0.0",
+  "python-dotenv>=1.0.0",
+  "datasets>=3.0.0",
+  "pyarrow>=17.0.0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0"]

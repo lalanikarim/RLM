@@ -24,6 +24,8 @@ from openai import OpenAI
 from openai.types import CompletionUsage
 
 from rlm import RecursiveLanguageModel
+from rlm.datasets import load_dataset, TestCase
+from rlm.datasets.oolong import check_model_context_capacity
 from rlm.repl import REPLEnvironment, parse_llm_response
 from rlm.prompts import ROOT_SYSTEM_PROMPT
 
@@ -37,20 +39,6 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DEFAULT_DATASET = DATA_DIR / "synthetic_test_cases.json"
-
-
-@dataclass
-class TestCase:
-    """A single test case with query, context, and ground truth."""
-
-    id: str
-    name: str
-    query: str
-    ground_truth: str
-    context_type: str
-    context_size: int
-    difficulty: str
-    context: str
 
 
 def load_test_cases(dataset_path: str | Path = DEFAULT_DATASET) -> list[TestCase]:
@@ -68,7 +56,7 @@ def load_test_cases(dataset_path: str | Path = DEFAULT_DATASET) -> list[TestCase
     print(f"Description: {dataset['description']}")
     print()
 
-    cases = []
+    cases: list[TestCase] = []
     for case_data in dataset["cases"]:
         cases.append(
             TestCase(
@@ -80,6 +68,7 @@ def load_test_cases(dataset_path: str | Path = DEFAULT_DATASET) -> list[TestCase
                 context_size=case_data["context_size"],
                 difficulty=case_data["difficulty"],
                 context=case_data["context"],
+                answer_type=case_data.get("answer_type", "categorical"),
             )
         )
 
@@ -193,10 +182,28 @@ def normalize_answer(a: str) -> str:
     return a.strip().lower().replace(",", "").replace(" ", "")
 
 
+def _parse_array_answer(ans: str) -> str:
+    """Parse OOLONG-style array answers like ['spam'] or [15] to plain text."""
+    ans = ans.strip()
+    if ans.startswith("[") and ans.endswith("]"):
+        inner = ans[1:-1].strip()
+        if inner.startswith("'") and inner.endswith("'"):
+            return inner[1:-1]
+        if inner.startswith('"') and inner.endswith('"'):
+            return inner[1:-1]
+        # Try to parse as single numeric value
+        try:
+            int(inner)
+            return inner
+        except ValueError:
+            pass
+    return ans
+
+
 def check_answer(got: str, expected: str) -> bool:
-    """Check if the answer matches (numeric or text)."""
-    got_norm = normalize_answer(got)
-    exp_norm = normalize_answer(expected)
+    """Check if the answer matches (numeric or text). Handles OOLONG arrays."""
+    got_norm = normalize_answer(_parse_array_answer(got))
+    exp_norm = normalize_answer(_parse_array_answer(expected))
 
     # Try numeric match (with tolerance for floating point)
     try:
@@ -208,9 +215,9 @@ def check_answer(got: str, expected: str) -> bool:
     except (ValueError, TypeError):
         pass
 
-    # Try text containment (for longer answers)
-    if len(got_norm) > 5 and len(exp_norm) > 5:
-        return exp_norm in got_norm or got_norm in exp_norm
+    # Try text containment (for answers of any length)
+    if exp_norm in got_norm or got_norm in exp_norm:
+        return True
 
     # Exact match
     return got_norm == exp_norm
@@ -754,6 +761,25 @@ def main() -> None:
         help="Methods to benchmark (default: all)",
     )
     parser.add_argument(
+        "--oolong-split",
+        type=str,
+        choices=["validation", "test"],
+        default="validation",
+        help="OOLONG dataset split (default: validation)",
+    )
+    parser.add_argument(
+        "--oolong-max",
+        type=int,
+        default=None,
+        help="Max OOLONG examples to use (for quick testing)",
+    )
+    parser.add_argument(
+        "--oolong-context-window",
+        type=int,
+        default=None,
+        help="Max context size in tokens (4K, 16K, 64K, 128K). Truncates larger.",
+    )
+    parser.add_argument(
         "--output",
         type=str,
         default=None,
@@ -762,8 +788,45 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    # Check model context capacity
+    model = os.environ.get("OPENAI_MODEL", "unknown")
+    capacity = check_model_context_capacity(model)
+    print(f"Model: {model}")
+    print(f"Estimated context capacity: {capacity['estimated_capacity']:,} tokens")
+    print(f"Allowed OOLONG sizes: {capacity['allowed_sizes']}")
+    if capacity['skipped_sizes']:
+        print(f"Skipped sizes (>capacity): {capacity['skipped_sizes']}")
+    print()
+
     # Load test cases
-    test_cases = load_test_cases(args.dataset)
+    if args.dataset in ("json", str(DEFAULT_DATASET)):
+        test_cases = load_test_cases(args.dataset)
+    else:
+        test_cases = load_dataset(
+            dataset_path=args.dataset,
+            oolong_split=args.oolong_split,
+            oolong_max=args.oolong_max,
+        )
+
+    # Apply context window constraint
+    if args.oolong_context_window:
+        if args.oolong_context_window not in capacity["allowed_sizes"]:
+            print(
+                f"WARNING: --oolong-context-window {args.oolong_context_window:,} "
+                f"exceeds model capacity. Consider using one of: "
+                f"{capacity['allowed_sizes']}"
+            )
+        test_cases = [
+            tc for tc in test_cases if tc.context_size <= args.oolong_context_window
+        ]
+        print(f"Filtered to {len(test_cases)} cases (≤ {args.oolong_context_window:,} tokens)")
+    else:
+        large = [tc for tc in test_cases if tc.context_size > capacity["estimated_capacity"] * 0.9]
+        if large:
+            print(
+                f"WARNING: {len(large)} cases exceed model capacity! "
+                f"Use --oolong-context-window to filter."
+            )
 
     # Run benchmark
     results = run_benchmark(test_cases, num_trials=args.trials, methods=args.methods)
